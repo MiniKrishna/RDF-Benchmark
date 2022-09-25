@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  stardog:
+    image: stardog/stardog:latest
+    volumes:
+      - ./stardog/:/var/opt/stardog
+      - ./source-data/:/var/opt/source-data
+    ports:
+      - 5820:5820
+    user: "root"
+    stdin_open: true
+    tty: true 
+  studio:
+    image: docker.io/stardog/stardog-studio:3.0.1
+    ports:
+      - 9090:8080       
