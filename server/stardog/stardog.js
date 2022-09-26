@@ -10,18 +10,18 @@ module.exports = function StardogExample() {
     });
 
 
-    const databaseName = 'music'
-    console.time('createDB')
+    const databaseMusic = 'music';
+    console.time('createDBMusic');
 
 
-    db.create(conn, databaseName, {}, { files: [{ filename: '/var/opt/source-data/music.ttl' }] }).then(res => {
-        console.timeEnd('createDB')
+    const musicTest = db.create(conn, databaseMusic, {}, { files: [{ filename: '/var/opt/source-data/music.ttl' }] }).then(res => {
+        console.timeEnd('createDBMusic')
         console.log(res);
         console.time('queryDistinct')
         return query
             .execute(
                 conn,
-                databaseName,
+                databaseMusic,
                 'select distinct ?s where { ?s ?p ?o }',
                 'application/sparql-results+json',
                 {
@@ -36,8 +36,47 @@ module.exports = function StardogExample() {
         console.log(res);
         console.log(res.body.results.bindings);
     }).finally(res => {
-        db.drop(conn, databaseName).then(res => {
+        return db.drop(conn, databaseMusic).then(res => {
             console.log(res.body.message);
         });
+    })
+
+
+    const databaseMovie = 'movie';
+    console.time('createDBMovie');
+
+    musicTest.then(res => {
+        db.create(conn, databaseMovie, {}, { files: [{ filename: '/var/opt/source-data/music.ttl' }] }).then(res => {
+            console.timeEnd('createDBMovie')
+            console.log(res);
+            console.time('querySearch')
+            return query
+                .execute(
+                    conn,
+                    databaseMovie,
+                    `SELECT ?movie ?title
+                    WHERE {
+                        ?meg :hasName "Meg Ryan";
+                            :actedIn ?movie.
+                        ?tom :hasName "Tom Hanks" ;
+                            :actedIn ?movie.
+                        ?movie :hasTitle ?title .
+                    }`,
+                    'application/sparql-results+json',
+                    {
+                        limit: 1,
+                        reasoning: true,
+                        offset: 0,
+                    }
+                )
+        }
+        ).then(res => {
+            console.timeEnd('querySearch')
+            console.log(res.body.results);
+        }).finally(res => {
+            db.drop(conn, databaseMovie).then(res => {
+                console.log(res.body.message);
+            });
+        })
     })
 }
